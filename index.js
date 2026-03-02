@@ -7,20 +7,33 @@ const app = {};
 
 app.handleReqRes = ReqRes;
 
-// data.create(
-//   "test",
-//   "newData",
-//   {
-//     Name: "Mehedi",
-//     Position: "Backend Developer",
-//   },
-//   (err) => {
-//     console.log(err);
-//   },
-// );
+data.create(
+  "test",
+  "newData",
+  {
+    Name: "Mehedi",
+    Position: "Backend Developer",
+  },
+  (err) => {
+    console.log(err);
+  },
+);
 
 data.read("test", "newData", (err, readData) => {
   console.log(readData);
+});
+
+data.update(
+  "test",
+  "newData",
+  { Name: "Munna", Position: "Team Lead" },
+  (err) => {
+    console.log(err);
+  },
+);
+
+data.delete("test", "newData", (err) => {
+  console.log(err);
 });
 
 app.serverRun = () => {
