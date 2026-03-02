@@ -1,17 +1,15 @@
 const http = require("http");
 const ReqRes = require("./helpers/handleReqRes");
+const environments = require("./helpers/environment");
 
 const app = {};
-
-app.serverConfig = {
-  port: 3000,
-};
 
 app.serverRun = () => {
   const server = http.createServer(app.handleReqRes);
 
-  server.listen(app.serverConfig.port, () => {
-    console.log(`Server is running in port ${app.serverConfig.port}`);
+  server.listen(environments.port, () => {
+    console.log(`Server is running in port ${environments.port}`);
+    console.log(`Currently this project is in ${environments.envName} state`);
   });
 };
 
