@@ -1,40 +1,10 @@
 const http = require("http");
 const ReqRes = require("./helpers/handleReqRes");
 const environments = require("./helpers/environment");
-const data = require("./lib/data");
 
 const app = {};
 
 app.handleReqRes = ReqRes;
-
-data.create(
-  "test",
-  "newData",
-  {
-    Name: "Mehedi",
-    Position: "Backend Developer",
-  },
-  (err) => {
-    console.log(err);
-  },
-);
-
-data.read("test", "newData", (err, readData) => {
-  console.log(readData);
-});
-
-data.update(
-  "test",
-  "newData",
-  { Name: "Munna", Position: "Team Lead" },
-  (err) => {
-    console.log(err);
-  },
-);
-
-data.delete("test", "newData", (err) => {
-  console.log(err);
-});
 
 app.serverRun = () => {
   const server = http.createServer(app.handleReqRes);

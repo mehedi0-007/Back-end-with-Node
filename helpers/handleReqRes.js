@@ -2,6 +2,7 @@ const url = require("url");
 const { StringDecoder } = require("string_decoder");
 const routes = require("../routes");
 const { notFoundHandler } = require("../handlers/routes handlers/notFound");
+const { parseJson } = require("./utilites");
 
 const handle = {};
 
@@ -13,7 +14,7 @@ handle.handleReqRes = (req, res) => {
   const method = req.method.toLowerCase();
   const headerObject = req.headers;
 
-  const handlerProperty = {
+  const requestProperty = {
     parsedUrl,
     path,
     trimmedPath,
@@ -22,33 +23,32 @@ handle.handleReqRes = (req, res) => {
     headerObject,
   };
 
-  let data = "";
+  let realData = "";
   const decoder = new StringDecoder("utf-8");
 
   const chosenHandler = routes[trimmedPath]
     ? routes[trimmedPath]
     : notFoundHandler;
 
-  chosenHandler(handlerProperty, (statusCode, payLoad) => {
-    const statuscode = typeof statusCode === "number" ? statusCode : 500;
-    const payload = typeof payLoad === "object" ? payLoad : {};
-
-    const payLoadString = JSON.stringify(payload);
-
-    res.writeHead(statuscode);
-    res.end(payLoadString);
-  });
-
   req.on("data", (dt) => {
-    data += decoder.write(dt);
+    realData += decoder.write(dt);
   });
 
   req.on("end", () => {
-    console.log("\n" + data + "\n");
+    realData += decoder.end();
 
-    console.log(trimmedPath);
-    data += decoder.end();
-    res.end("Data Recieved");
+    requestProperty.body = parseJson(realData);
+
+    chosenHandler(requestProperty, (statusCode, payLoad) => {
+      const statuscode = typeof statusCode === "number" ? statusCode : 500;
+      const payload = typeof payLoad === "object" ? payLoad : {};
+
+      const payLoadString = JSON.stringify(payload);
+
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(statuscode);
+      res.end(payLoadString);
+    });
   });
 };
 
