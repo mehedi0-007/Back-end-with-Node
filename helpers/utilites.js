@@ -20,8 +20,13 @@ utilies.encrypt = (data) => {
     .createHmac("sha256", env.secretKey)
     .update(data)
     .digest("hex");
-    
+
   return encryptedData;
 };
 
+utilies.createToken = (strlen) => {
+  const tokenId = crypto.randomBytes(strlen).toString("hex");
+
+  return tokenId;
+};
 module.exports = utilies;
