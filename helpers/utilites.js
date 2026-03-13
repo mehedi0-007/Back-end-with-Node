@@ -27,6 +27,6 @@ utilies.encrypt = (data) => {
 utilies.createToken = (strlen) => {
   const tokenId = crypto.randomBytes(strlen).toString("hex");
 
-  return tokenId;
+  return tokenId; 
 };
 module.exports = utilies;

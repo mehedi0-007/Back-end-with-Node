@@ -3,13 +3,15 @@ const environments = {};
 environments.staging = {
   port: 3000,
   envName: "Staging",
-  secretKey : 'MehediHassan'
+  secretKey: "MehediHassan",
+  maxChecks: 5,
 };
 
 environments.production = {
   port: 5000,
   envName: "Production",
-  secretKey : 'MH_007'
+  secretKey: "MH_007",
+  maxChecks: 5,
 };
 
 const curEnv =
