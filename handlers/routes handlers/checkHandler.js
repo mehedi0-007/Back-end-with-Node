@@ -315,8 +315,39 @@ handler._check.delete = (requestProperties, callback) => {
             if (err) {
               data.delete("checks", chekId, (err) => {
                 if (!err) {
-                  callback(200, {
-                    msg: "Successfully deleted the check",
+                  data.read("user", parseJson(checkData).phoneNum, (err, usrData) => {
+                    if (!err) {
+                      const usrdata = parseJson(usrData);
+                      const usr = usrdata.checks;
+                      if (usr.indexOf(chekId) > -1) {
+                        usr.splice(usr.indexOf(chekId), 1);
+                        usrdata.checks = usr;
+                        data.update(
+                          "user",
+                          usrdata.phoneNum,
+                          usrdata,
+                          (err) => {
+                            if (!err) {
+                              callback(200, {
+                                msg: "Successfully deleted the check from server",
+                              });
+                            } else {
+                              callback(404, {
+                                error: "Serverside error in user",
+                              });
+                            }
+                          },
+                        );
+                      } else {
+                        callback(404, {
+                          error: "Could not find the check in user Data",
+                        });
+                      }
+                    } else {
+                      callback(404, {
+                        error: "Could not find the user",
+                      });
+                    }
                   });
                 } else {
                   callback(404, {
