@@ -182,8 +182,166 @@ handler._check.get = (requestProperties, callback) => {
   }
 };
 
-handler._check.put = (requestProperties, callback) => {};
+handler._check.put = (requestProperties, callback) => {
+  let id =
+    typeof requestProperties.body.id === "string" &&
+    requestProperties.body.id.length === 20
+      ? requestProperties.body.id
+      : false;
 
-handler._check.delete = (requestProperties, callback) => {};
+  const reqBody = requestProperties.body;
+
+  let protocol =
+    typeof reqBody.protocol === "string" &&
+    ["http", "https"].indexOf(reqBody.protocol) > -1
+      ? reqBody.protocol
+      : false;
+
+  let url =
+    typeof reqBody.url === "string" && reqBody.url.trim().length > 0
+      ? reqBody.url
+      : false;
+
+  let method =
+    typeof reqBody.method === "string" &&
+    ["GET", "POST", "PUT", "DELETE"].indexOf(reqBody.method) > -1
+      ? reqBody.method
+      : false;
+
+  let successCodes =
+    typeof reqBody.successCodes === "object" &&
+    reqBody.successCodes instanceof Array
+      ? reqBody.successCodes
+      : false;
+
+  let timeOutSeconds =
+    typeof reqBody.timeOutSeconds === "number" &&
+    reqBody.timeOutSeconds % 1 === 0 &&
+    reqBody.timeOutSeconds >= 1 &&
+    reqBody.timeOutSeconds <= 5
+      ? reqBody.timeOutSeconds
+      : false;
+
+  if (id) {
+    data.read("checks", id, (err, checkData) => {
+      if (!err) {
+        if (protocol || method || successCodes || url || timeOutSeconds) {
+          const chk = parseJson(checkData);
+
+          let token =
+            typeof requestProperties.headerObject.token === "string"
+              ? requestProperties.headerObject.token
+              : false;
+
+          if (token) {
+            tokenHandler._token.verify(token, chk.phoneNum, (err) => {
+              if (err) {
+                if (protocol) {
+                  chk.protocol = protocol;
+                }
+                if (url) {
+                  chk.url = url;
+                }
+                if (method) {
+                  chk.method = method;
+                }
+                if (successCodes) {
+                  chk.successCodes = successCodes;
+                }
+                if (timeOutSeconds) {
+                  chk.timeOutSeconds = timeOutSeconds;
+                }
+
+                data.update("checks", id, chk, (err) => {
+                  if (!err) {
+                    callback(200, {
+                      msg: "Successfully updated the check",
+                      check: chk,
+                    });
+                  } else {
+                    callback(404, {
+                      error: "Server could not update the checks",
+                    });
+                  }
+                });
+              } else {
+                callback(404, {
+                  error: "Authenticatoin failed",
+                });
+              }
+            });
+          } else {
+            callback(404, {
+              eroor: "Token not found",
+            });
+          }
+        } else {
+          callback(403, {
+            error: "You have to provide at least one update parameter",
+          });
+        }
+      } else {
+        callback(404, {
+          error: "Could not find the check",
+        });
+      }
+    });
+  } else {
+    callback(403, {
+      error: "You have a problem in your request",
+    });
+  }
+};
+
+handler._check.delete = (requestProperties, callback) => {
+  let chekId =
+    typeof requestProperties.body.id === "string" &&
+    requestProperties.body.id.length === 20
+      ? requestProperties.body.id
+      : false;
+
+  if (chekId) {
+    data.read("checks", chekId, (err, checkData) => {
+      if (!err) {
+        let token =
+          typeof requestProperties.headerObject.token === "string"
+            ? requestProperties.headerObject.token
+            : false;
+
+        tokenHandler._token.verify(
+          token,
+          parseJson(checkData).phoneNum,
+          (err) => {
+            if (err) {
+              data.delete("checks", chekId, (err) => {
+                if (!err) {
+                  callback(200, {
+                    msg: "Successfully deleted the check",
+                  });
+                } else {
+                  callback(404, {
+                    error: "Serverside error",
+                  });
+                }
+              });
+            } else {
+              callback(404, {
+                error: "Authentication failed",
+              });
+            }
+          },
+        );
+      } else {
+        callback(403, {
+          error: "Checks not found in server",
+        });
+      }
+    });
+  } else {
+    callback(403, {
+      error: "You have a problem in your request",
+    });
+  }
+};
 
 module.exports = handler;
